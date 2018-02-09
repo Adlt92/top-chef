@@ -26,6 +26,7 @@ function Scraping(){
   });
 }
 
+
 function ScannerPage(page_max){
   console.log('scanner page');
   //scan each page to hyave the link of page
@@ -42,7 +43,6 @@ function ScannerPage(page_max){
           var json =  {name : "", url: ""}
           json.name = $(this).attr('attr-gtm-title');
           json.url =  $(this).children().attr('href');
-          console.log(json);
           jsons.push(json);
         });
       }
@@ -50,15 +50,14 @@ function ScannerPage(page_max){
     });
   }
   console.log('Scraping successfull !');
-  ExtractData();
+  ExtractData(615);
 }
 
-function ExtractData(){
-  console.log('extract data');
+function ExtractData(nbr_resto){
+  console.log('extract data from');
   var json_file = [];
   var jsons = [];
-  var nbr_resto = 1;
-
+  nbr_resto = 615;
   //extract the data from link_resto.json
   fs.readFile('link_resto.json', function readFileCallback(err, data){
     if (err){
@@ -68,18 +67,26 @@ function ExtractData(){
       json_file = JSON.parse(data);
       //scraping each retaurant in France
       for (i = 0; i < nbr_resto; i++){
+        console.log(i, nbr_resto, json_file[i].url);
         var url = 'https://restaurant.michelin.fr' + json_file[i].url;
         request(url, function (error, response, html){
           if (!error && response.statusCode == 200){
             var $ = cheerio.load(html);
-            var json =  {name :"", etoile:"", note:"", type_cuisine:"", prix:"", code_postal:"", ville:"", adresse: ""};
+            var json =  {name :"", etoile:"", note:"", type_cuisine:"", prix_min:"", prix_max:"", code_postal:"", ville:"", adresse: ""};
+
+            //var note = $('div.poi_intro-description opt-upper__intro-area').html();
+            //console.log('note', note);
+            //prix
+            var prix = $('div.poi_intro-display-prices').text();
+            json.prix_min = prix.substring(19,22);
+            json.prix_max = prix.substring(26,30);
+            //autres info
             $('[itemprop="address"]').each(function(i, element){
-              json.name = $(this).prev().prev().text();
-              var etoile = $(this).prev().children().attr('class');
-              console.log(etoile);
-              //json.note = $(this).parent().parent().text();
-              json.type_cuisine = $(this).next().text();
-              json.prix = $(this).next().next().text();
+              var name = $(this).prev().prev().text();
+              json.name = name.substring(7,name.length -4);
+              var type = $(this).next().text();
+              json.type_cuisine = type.substring(7,type.length -4);
+              //adress
               var adresse = $(this).children().children().children().children();
               json.adresse = $(adresse).children().eq(0).text();
               json.code_postal = $(adresse).next().children().eq(0).text();
@@ -96,5 +103,5 @@ function ExtractData(){
   console.log('Saving sucessfull !');
 }
 
-//Scraping();
-ExtractData();
+Scraping();
+//ExtractData(1);
