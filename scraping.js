@@ -2,8 +2,8 @@
 var request = require('request');
 var cheerio = require('cheerio');
 var fs = require('fs');
-//var jsonfile = require('jsonfile');
-//initialisation des variable
+
+
 var urlsearch = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin';
 //var num_page;
 //permet de cherher le nombre de page total des resultats
@@ -25,7 +25,6 @@ function Scraping(){
     ScannerPage(pagef);
   });
 }
-
 
 function ScannerPage(page_max){
   console.log('scanner page');
