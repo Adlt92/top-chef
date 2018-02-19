@@ -6,9 +6,8 @@ var fs = require('fs');
 
 var urlsearch = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin';
 //var num_page;
-//permet de cherher le nombre de page total des resultats
-function Scraping(){
-  console.log('start');
+
+function SearchNbrPage(callback){
   //count the number of result page
   var pagef = 0;
   request(urlsearch, function (error, response, html) {
@@ -21,17 +20,13 @@ function Scraping(){
         }
       });
     }
-    console.log('there is ', pagef, ' pages of results');
-    ScannerPage(pagef);
+    callback(pagef);
   });
 }
 
-function ScannerPage(page_max){
-  console.log('scanner page');
+function ScanUrl(page_max, callback){
   //scan each page to hyave the link of page
   var jsons = [];
-  num_page = page_max;
-  var num_resto = 0;
   for (i = 1; i <= page_max; i++)
   {
     var url = urlsearch + '/page-' + i;
@@ -39,61 +34,71 @@ function ScannerPage(page_max){
       if (!error && response.statusCode == 200) {
         var $ = cheerio.load(html);
         $('[attr-gtm-type="poi"]').each(function(i, element){
-          var json =  {name : "", url: ""}
+          var json =  {name : "", url : "", etoile : "", note : "", type_cuisine : "", prix_min : "", prix_max : "", localisation : {address : "", zipcode : "", ville : "" }, fourchette : {id : "", name : "", offre : {title : "", description : ""} }};
           json.name = $(this).attr('attr-gtm-title');
           json.url =  $(this).children().attr('href');
           jsons.push(json);
         });
       }
-      fs.writeFile('link_resto.json', JSON.stringify(jsons, null, 4), function(err){})
+      fs.writeFile('info_resto.json', JSON.stringify(jsons, null, 4), function(err){})
+      callback();
     });
   }
-  console.log('Scraping successfull !');
-  ExtractData(615);
+  
 }
 
-function ExtractData(nbr_resto){
-  console.log('extract data from');
+function ExtractData(){
   var json_file = [];
   var jsons = [];
   //extract the data from link_resto.json
-  fs.readFile('link_resto.json', function readFileCallback(err, data){
+  fs.readFile('info_resto.json', function readFileCallback(err, data){
     if (err){
       console.log(err);
     }
     else {
       json_file = JSON.parse(data);
+      var nbr_resto = 5;//json_file.length-1;
       //scraping each retaurant in France
       for (i = 0; i < nbr_resto; i++){
         var url = 'https://restaurant.michelin.fr' + json_file[i].url;
         request(url, function (error, response, html){
           if (!error && response.statusCode == 200){
             var $ = cheerio.load(html);
-            var json =  {name :"", etoile:"", note:"", type_cuisine:"", prix_min:"", prix_max:"", zipcode:"", ville:"", address: ""};
             //prix
             var prix = $('div.poi_intro-display-prices').text();
-            json.prix_min = prix.substring(19,22);
-            json.prix_max = prix.substring(26,30);
+            json_file[i].prix_min = prix.substring(19,22);
+            json_file[i].prix_max = prix.substring(26,30);
             //autres info
             $('[itemprop="address"]').each(function(i, element){
               var name = $(this).prev().prev().text();
-              json.name = name.substring(7,name.length -4);
+              json_file[i].name = name.substring(7,name.length -4);
               var type = $(this).next().text();
-              json.type_cuisine = type.substring(7,type.length -4);
-              //adress
+              json_file[i].type_cuisine = type.substring(7,type.length -4);
+              //localisation
               var adresse = $(this).children().children().children().children();
-              json.address = $(adresse).children().eq(0).text();
-              json.zipcode = $(adresse).next().children().eq(0).text();
-              json.ville = $(adresse).next().children().next().text();
+              json_file[i].localisation.address = $(adresse).children().eq(0).text();
+              json_file[i].localisation.zipcode = $(adresse).next().children().eq(0).text();
+              json_file[i].localisation.ville = $(adresse).next().children().next().text();
             });
-            jsons.push(json);
           }
+          console.log(json_file[i]);
           //save the data in a json file
           fs.writeFile('info_resto.json', JSON.stringify(jsons, null, 4), function(err){});
         });
       }
     }
   });
+}
+
+function Scraping(){
+  console.log('start');
+  var nbr_page = SearchNbrPage();
+  console.log('there is ', nbr_page, ' pages of results');
+  console.log('scanner page');
+  ScanUrl(nbr_page);
+  console.log('Scraping successfull !');
+  console.log('extract data');
+  ExtractData();
   console.log('Saving sucessfull !');
 }
 

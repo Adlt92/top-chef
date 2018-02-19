@@ -15,7 +15,7 @@ function scrapID(){
 				request(urlsearch, function (error, response, results){
 					if(result.length > 0){
 						result.forEach(function(resto){
-							if(resto.address.postal_code == json_file[i].zipcode){
+							if(resto.address.postal_code == json_file[i].localisation.zipcode){
 								json_file[i].fouchette.id = resto.id;
 							}
 						});
