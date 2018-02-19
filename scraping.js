@@ -57,7 +57,6 @@ function ExtractData(nbr_resto){
   console.log('extract data from');
   var json_file = [];
   var jsons = [];
-  nbr_resto = 615;
   //extract the data from link_resto.json
   fs.readFile('link_resto.json', function readFileCallback(err, data){
     if (err){
@@ -67,15 +66,11 @@ function ExtractData(nbr_resto){
       json_file = JSON.parse(data);
       //scraping each retaurant in France
       for (i = 0; i < nbr_resto; i++){
-        console.log(i, nbr_resto, json_file[i].url);
         var url = 'https://restaurant.michelin.fr' + json_file[i].url;
         request(url, function (error, response, html){
           if (!error && response.statusCode == 200){
             var $ = cheerio.load(html);
-            var json =  {name :"", etoile:"", note:"", type_cuisine:"", prix_min:"", prix_max:"", code_postal:"", ville:"", adresse: ""};
-
-            //var note = $('div.poi_intro-description opt-upper__intro-area').html();
-            //console.log('note', note);
+            var json =  {name :"", etoile:"", note:"", type_cuisine:"", prix_min:"", prix_max:"", zipcode:"", ville:"", address: ""};
             //prix
             var prix = $('div.poi_intro-display-prices').text();
             json.prix_min = prix.substring(19,22);
@@ -88,8 +83,8 @@ function ExtractData(nbr_resto){
               json.type_cuisine = type.substring(7,type.length -4);
               //adress
               var adresse = $(this).children().children().children().children();
-              json.adresse = $(adresse).children().eq(0).text();
-              json.code_postal = $(adresse).next().children().eq(0).text();
+              json.address = $(adresse).children().eq(0).text();
+              json.zipcode = $(adresse).next().children().eq(0).text();
               json.ville = $(adresse).next().children().next().text();
             });
             jsons.push(json);
@@ -104,4 +99,3 @@ function ExtractData(nbr_resto){
 }
 
 Scraping();
-//ExtractData(1);
