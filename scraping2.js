@@ -78,7 +78,7 @@ function scrapOffre(){
 	});
 }
 
-function scrapingLaFourchette(){
+function scrapingFourchette(){
 	var name_file_in = 'info_resto.json';
 	var name_file_out = 'lafourchette.json';
 	scrapID(name_file_in, name_file_out);
@@ -87,4 +87,4 @@ function scrapingLaFourchette(){
 	Console.log("finish");
 }
 
-scrapingLaFourchette();
+scrapingFourchette();

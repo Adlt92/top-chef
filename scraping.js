@@ -41,15 +41,13 @@ function ScanUrl(page_max, callback){
         });
       }
       fs.writeFile('info_resto.json', JSON.stringify(jsons, null, 4), function(err){})
-      callback();
     });
   }
-  
+  callback();
 }
 
-function ExtractData(){
+function ExtractData(callback){
   var json_file = [];
-  var jsons = [];
   //extract the data from link_resto.json
   fs.readFile('info_resto.json', function readFileCallback(err, data){
     if (err){
@@ -57,49 +55,62 @@ function ExtractData(){
     }
     else {
       json_file = JSON.parse(data);
-      var nbr_resto = 5;//json_file.length-1;
+      var nbr_resto = json_file.length-1;
       //scraping each retaurant in France
+      callback("scraping done ! ");
       for (i = 0; i < nbr_resto; i++){
         var url = 'https://restaurant.michelin.fr' + json_file[i].url;
-        request(url, function (error, response, html){
-          if (!error && response.statusCode == 200){
-            var $ = cheerio.load(html);
-            //prix
-            var prix = $('div.poi_intro-display-prices').text();
-            json_file[i].prix_min = prix.substring(19,22);
-            json_file[i].prix_max = prix.substring(26,30);
-            //autres info
-            $('[itemprop="address"]').each(function(i, element){
-              var name = $(this).prev().prev().text();
-              json_file[i].name = name.substring(7,name.length -4);
-              var type = $(this).next().text();
-              json_file[i].type_cuisine = type.substring(7,type.length -4);
-              //localisation
-              var adresse = $(this).children().children().children().children();
-              json_file[i].localisation.address = $(adresse).children().eq(0).text();
-              json_file[i].localisation.zipcode = $(adresse).next().children().eq(0).text();
-              json_file[i].localisation.ville = $(adresse).next().children().next().text();
-            });
-          }
-          console.log(json_file[i]);
-          //save the data in a json file
-          fs.writeFile('info_resto.json', JSON.stringify(jsons, null, 4), function(err){});
+        var json = json_file[i];
+        search(url, json, function(new_json) {
+          json_file[i] = new_json;
+          fs.writeFile('info_resto.json', JSON.stringify(json_file, null, 4), function(err){});
         });
       }
     }
   });
 }
 
-function Scraping(){
-  console.log('start');
-  var nbr_page = SearchNbrPage();
-  console.log('there is ', nbr_page, ' pages of results');
-  console.log('scanner page');
-  ScanUrl(nbr_page);
-  console.log('Scraping successfull !');
-  console.log('extract data');
-  ExtractData();
-  console.log('Saving sucessfull !');
+function search(url, json, callback){
+  request(url, function (error, response, html){
+    if (!error && response.statusCode == 200){
+      var $ = cheerio.load(html);
+      //price
+      var prix = $('div.poi_intro-display-prices').text();
+      json.prix_min = prix.substring(19,22);
+      json.prix_max = prix.substring(26,30);
+      //other informations
+      $('[itemprop="address"]').each(function(i, element){
+        var name = $(this).prev().prev().text();
+        json.name = name.substring(7,name.length -4);
+        var type = $(this).next().text();
+        json.type_cuisine = type.substring(7,type.length -4);
+        //localisation
+        var adresse = $(this).children().children().children().children();
+        json.localisation.address = $(adresse).children().eq(0).text();
+        json.localisation.zipcode = $(adresse).next().children().eq(0).text();
+        json.localisation.ville = $(adresse).next().children().next().text();
+      });
+    }
+    callback(json);
+  });
 }
 
-Scraping();
+function ScrapingMichelin(){
+  console.log('start');
+  SearchNbrPage(function(nbr_page){
+    console.log('there is ', nbr_page, ' pages of results');
+    console.log("Now we scan url")
+    ScanUrl(nbr_page, function(){
+      console.log('Saving url done !');
+      console.log('Now we extract data from html pages');
+      ExtractData(function(done){
+        console.log(done);
+      });
+    });
+  });
+}
+
+ScrapingMichelin();
+/*ExtractData(function(done){
+  console.log(done);
+});*/
