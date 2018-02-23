@@ -26,6 +26,7 @@ function SearchNbrPage(callback){
 
 function ScanUrl(page_max, callback){
   //scan each page to hyave the link of page
+  var nbr_resto = 0;
   var jsons = [];
   for (i = 1; i <= page_max; i++)
   {
@@ -38,15 +39,16 @@ function ScanUrl(page_max, callback){
           json.name = $(this).attr('attr-gtm-title');
           json.url =  $(this).children().attr('href');
           jsons.push(json);
+          nbr_resto++;
         });
       }
-      fs.writeFile('info_resto.json', JSON.stringify(jsons, null, 4), function(err){})
+      fs.writeFile('info_resto.json', JSON.stringify(jsons, null, 4), function(err){});
+      callback(nbr_resto);
     });
   }
-  callback();
 }
 
-function ExtractData(callback){
+function ExtractData(nn, callback){
   var json_file = [];
   //extract the data from link_resto.json
   fs.readFile('info_resto.json', function readFileCallback(err, data){
@@ -57,7 +59,7 @@ function ExtractData(callback){
       json_file = JSON.parse(data);
       var nbr_resto = json_file.length-1;
       //scraping each retaurant in France
-      callback("scraping done ! ");
+
       for (i = 0; i < nbr_resto; i++){
         var url = 'https://restaurant.michelin.fr' + json_file[i].url;
         var json = json_file[i];
@@ -65,6 +67,8 @@ function ExtractData(callback){
           json_file[i] = new_json;
           fs.writeFile('info_resto.json', JSON.stringify(json_file, null, 4), function(err){});
         });
+        var string = "scraping " + i + " done !";
+        callback(string);
       }
     }
   });
@@ -99,18 +103,15 @@ function ScrapingMichelin(){
   console.log('start');
   SearchNbrPage(function(nbr_page){
     console.log('there is ', nbr_page, ' pages of results');
-    console.log("Now we scan url")
-    ScanUrl(nbr_page, function(){
-      console.log('Saving url done !');
+    ScanUrl(nbr_page, function(resto){
+      console.log('Saving url',resto, ' done !');
       console.log('Now we extract data from html pages');
-      ExtractData(function(done){
-        console.log(done);
-      });
+
     });
   });
 }
 
-ScrapingMichelin();
-/*ExtractData(function(done){
+//ScrapingMichelin();
+ExtractData(615, function(done){
   console.log(done);
-});*/
+});
