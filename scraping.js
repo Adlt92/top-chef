@@ -69,7 +69,6 @@ function ExtractData(){
           json_file[i] = new_json;
           fs.writeFile('info_resto.json', JSON.stringify(json_file, null, 4), function(err){});
         });
-        var string = "scraping " + i + " done !";
       }
     }
   });
