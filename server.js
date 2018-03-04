@@ -1,14 +1,14 @@
-//const michelin = require("./scraping.js");
+const michelin = require("./scraping.js");
 const lafourchette = require("./scraping2.js");
 var fs = require('fs');	
 
 var delai_ms = 6 * 60 * 1000;
 
-//michelin;
+michelin;
 
 lafourchette;
 
-//setTimeout(AffichageResultats, delai_ms); 
+setTimeout(AffichageResultats, delai_ms); 
 
 function AffichageResultats(){
     console.log("affichage");

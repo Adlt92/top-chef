@@ -23,8 +23,7 @@ function scrapID(nn, callback){
 				  json_file[i] = new_json;
 				  fs.writeFile('info_resto.json', JSON.stringify(json_file, null, 4), function(err){});
 				});
-			var string = "scraping " + i + " done !";
-		  	callback(string);
+		  	callback(i);
 		}
 	  }
 	});
@@ -33,13 +32,14 @@ function scrapID(nn, callback){
 function search2(url_s, json_fi, callback){
 	request({url: url_s, json : true}, function (error, response, body){
 		if(body != null){
+			console.log(body);
 			try{
 				if(body.length > 0){
 					body.forEach(function(element){
 						if(element.address.postal_code == json_fi.localisation.zipcode){
 							json_fi.fourchette.id = element.id;
 						}
-			});
+					});
 				}
 			} catch(error){
 				console.log(error);
@@ -93,13 +93,11 @@ function req(url_s, json_fi, callback){
 	  });
 }
 
-
 function scrapingFourchette(){
 	console.log("start la fourchette")
-	var name_file_in = 'info_resto.json';
-	scrapID(name_file_in, function() {
+	scrapID( 'info_resto.json', function(affichage) {
 		scrapO('info_resto.json', function(){});
 	});
 }
 
-setTimeout(scrapingFourchette,3 * 60 * 1000);
+setTimeout(scrapingFourchette, 1000);
