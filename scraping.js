@@ -25,6 +25,7 @@ function SearchNbrPage(callback){
 }
 
 function ScanUrl(page_max, callback){
+  console.log('Now we extract data from html pages');
   //scan each page to hyave the link of page
   var nbr_resto = 0;
   var jsons = [];
@@ -48,7 +49,8 @@ function ScanUrl(page_max, callback){
   }
 }
 
-function ExtractData(nn, callback){
+function ExtractData(){
+  console.log("Extract Data");
   var json_file = [];
   //extract the data from link_resto.json
   fs.readFile('info_resto.json', function readFileCallback(err, data){
@@ -68,7 +70,6 @@ function ExtractData(nn, callback){
           fs.writeFile('info_resto.json', JSON.stringify(json_file, null, 4), function(err){});
         });
         var string = "scraping " + i + " done !";
-        callback(string);
       }
     }
   });
@@ -104,14 +105,8 @@ function ScrapingMichelin(){
   SearchNbrPage(function(nbr_page){
     console.log('there is ', nbr_page, ' pages of results');
     ScanUrl(nbr_page, function(resto){
-      console.log('Saving url',resto, ' done !');
-      console.log('Now we extract data from html pages');
-
     });
   });
+  setTimeout(ExtractData , 10000);
 }
-
-//ScrapingMichelin();
-ExtractData(615, function(done){
-  console.log(done);
-});
+ScrapingMichelin();

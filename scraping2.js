@@ -93,21 +93,9 @@ function req(url_s, json_fi, callback){
 	  });
 }
 
-function scrapingFourchette(interval){
+function scrapingFourchette(){
 	var name_file_in = 'info_resto.json';
-	//appel la fonction tt les jours
-	//setTimeout(scrapingFourchette, interval);
-	scrapID2(name_file_in, function() {
-		
+	scrapID(name_file_in, function() {
+		scrapO('info_resto.json', function(){});
 	});
 }
-
-var time = 24*60*60*1000;
-//scrapingFourchette(time);
-//scrapID('info_resto.json', function(){});
-scrapO('info_resto.json', function(){});
-
-
-//https://m.lafourchette.com/fr_FR/restaurant/le-violon-d-ingres-christian-constant/205737
-//https://m.lafourchette.com/api/restaurant/'+resto.idLF+'/sale-type
-//https://m.lafourchette.com/api/restaurant/205737/sale-type
